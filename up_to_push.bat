@@ -1,0 +1,1 @@
+git add . && git commit -m "one_command sry" && git push origin master
