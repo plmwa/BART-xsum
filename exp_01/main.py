@@ -1,4 +1,5 @@
 from datasets import load_dataset
 
 xsum = load_dataset("xsum")
-print(xsum)
+train_ds=xsum["train"]
+print(train_ds[0])
