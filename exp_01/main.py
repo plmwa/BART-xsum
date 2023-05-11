@@ -1,5 +1,5 @@
-from datasets import list_datasets
+from datasets import load_datasets
 
-all_datasets=list_datasets()
+all_datasets=load_datasets()
 xsum = load_dataset("xsum")
 print(xsum)
