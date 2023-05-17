@@ -82,17 +82,16 @@ class XsumDataset(Dataset):
 #トークナイザーモデルの読み込み
 tokenizer = BartTokenizer.from_pretrained('facebook/bart-base')
 
-train_dataset=XsumDataset(train_ds,tokenizer,document_max_length=200,summary_max_length=40)
+train_dataset=XsumDataset(train_ds,tokenizer,document_max_length=2000,summary_max_length=400)
 
 #トークナイズ結果確認
-i=1
 for data in train_dataset:
     print("要約前文章")
     print(data["document"])
     print(data["document_ids"])
+    print(data["document_attention_mask"])
     print("要約後文章")
     print(data["summary"])
     print(data["summary_ids"])
-    if i==2: 
-        break
-    i+=1
+    print(data["summary_attention_mask"])
+
