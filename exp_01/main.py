@@ -3,6 +3,8 @@ from datasets import load_dataset
 
 xsum = load_dataset("xsum")
 train_ds=xsum["train"]
+
+print(max(len(train_ds["summary"].document)))
 """
 DatasetDict({
     train: Dataset({
@@ -19,14 +21,51 @@ DatasetDict({
     })
 })
 """
+"""
+class XsumDataset(Dataset):
+    def __init__(self,data,tokenizer,document_max_length,summary_max_length):
+        self.data=data
+        self.tokenizer=tokenizer
+        self.document_max_length=document_max_length
+        self.summary_max_length=summary_max_length
+
+    def __len__(self):
+        return len(self.data)
+    
+    def __getitem__(self,index):
+        data_row=data[index]
+        document = data_row[self.document]
+        summary = data_row[self.summary]
+
+        document_encoding = self.tokenizer.encode_plus(
+            document,
+            max_length=self.document_max_length,
+            padding="max_length",
+            return_tensors="pt",
+        )
+
+        summary_encoding = self.tokenizer.encode_plus(
+            summary,
+            max_length=self.document_max_length,
+            padding="max_length",
+            return_tensors="pt",
+        )
+
+        return dict(
+            document=document,
+            document_ids=document_encoding["input_ids"].flatten(),
+            summary=summary,
+            summary_ids=summary_encoding["input_ids"].flatten(),
+        )
+
+
+
+
+
 
 from transformers import BartTokenizer, BartModel
-
+#トークナイザーモデルの読み込み
 tokenizer = BartTokenizer.from_pretrained('facebook/bart-base')
-model = BartModel.from_pretrained('facebook/bart-base')
 
-inputs = tokenizer("Hello, my dog is cute", return_tensors="pt")
-outputs = model(**inputs)
-
-last_hidden_states = outputs.last_hidden_state
-print(last_hidden_states)
+train_dataset=XsumDataset(train_ds,tokenizer,document_max_length=2000,summary_max_length=)
+"""
