@@ -96,4 +96,4 @@ for data in train_dataset:
 
 #モデルの読み込み
 model = BartModel.from_pretrained('facebook/bart-base')
-model.config.max_position_embeddings
+print(model.config.max_position_embeddings)
