@@ -42,7 +42,7 @@ class XsumDataset(Dataset):
         return len(self.data)
     
     def __getitem__(self,index):
-        data_row=data[index]
+        data_row=self.data[index]
         document = data_row[self.document]
         summary = data_row[self.summary]
 
