@@ -43,8 +43,8 @@ class XsumDataset(Dataset):
     
     def __getitem__(self,index):
         data_row=self.data[index]
-        document = data_row[self.document]
-        summary = data_row[self.summary]
+        document = data_row["document"]
+        summary = data_row["summary"]
 
         document_encoding = self.tokenizer.encode_plus(
             document,
