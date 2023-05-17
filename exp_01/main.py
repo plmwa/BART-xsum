@@ -1,5 +1,14 @@
-#データセットのダウンロード（xsum）
+#importライブラリ
+
+#データセット
 from datasets import load_dataset
+#transformers
+from transformers import BartTokenizer, BartModel
+#torch
+from torch.utils.data import DataLoader, Dataset
+
+#データセットのダウンロード（xsum）
+
 
 xsum = load_dataset("xsum")
 
@@ -61,7 +70,7 @@ class XsumDataset(Dataset):
 
 
 
-from transformers import BartTokenizer, BartModel
+
 #トークナイザーモデルの読み込み
 tokenizer = BartTokenizer.from_pretrained('facebook/bart-base')
 
