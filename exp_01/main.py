@@ -2,9 +2,10 @@
 from datasets import load_dataset
 
 xsum = load_dataset("xsum")
-train_ds=xsum["train"]
 
-print(max(len(train_ds["summary"].document)))
+for i in range(100):
+    print(xsum["train"][i].summary)
+
 """
 DatasetDict({
     train: Dataset({
