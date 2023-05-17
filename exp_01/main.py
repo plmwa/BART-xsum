@@ -49,7 +49,7 @@ class XsumDataset(Dataset):
         document_encoding = self.tokenizer.encode_plus(
             document,
             max_length=self.document_max_length,
-            padding="max_length",
+            padding=True,
             truncation=True,
             return_tensors="pt",
         )
@@ -57,7 +57,7 @@ class XsumDataset(Dataset):
         summary_encoding = self.tokenizer.encode_plus(
             summary,
             max_length=self.document_max_length,
-            padding="max_length",
+            padding=True,
             truncation=True,
             return_tensors="pt",
         )
