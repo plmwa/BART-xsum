@@ -4,7 +4,7 @@ from datasets import load_dataset
 xsum = load_dataset("xsum")
 
 for i in range(100):
-    print(xsum["train"][i].summary)
+    print(xsum["train"][i])
 
 """
 DatasetDict({
