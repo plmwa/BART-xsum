@@ -11,7 +11,9 @@ from torch.utils.data import DataLoader, Dataset
 
 
 xsum = load_dataset("xsum")
+train_ds = xsum["train"]
 
+#Xsumのオブジェクト
 """
 DatasetDict({
     train: Dataset({
