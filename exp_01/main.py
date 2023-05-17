@@ -2,10 +2,11 @@
 from datasets import load_dataset
 
 xsum = load_dataset("xsum")
-
+max_1=0
 for i in range(100):
-    print(xsum["train"][i])
-
+    if max_1<len(xsum["train"][i]["summary"]):
+        max_1=len(xsum["train"][i]["summary"])
+print(max_1)
 """
 DatasetDict({
     train: Dataset({
