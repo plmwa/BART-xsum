@@ -2,11 +2,7 @@
 from datasets import load_dataset
 
 xsum = load_dataset("xsum")
-max_1=0
-for i in range(204045):
-    if max_1<len(xsum["train"][i]["summary"]):
-        max_1=len(xsum["train"][i]["summary"])
-print(max_1)
+
 """
 DatasetDict({
     train: Dataset({
@@ -23,7 +19,7 @@ DatasetDict({
     })
 })
 """
-"""
+
 class XsumDataset(Dataset):
     def __init__(self,data,tokenizer,document_max_length,summary_max_length):
         self.data=data
@@ -69,5 +65,14 @@ from transformers import BartTokenizer, BartModel
 #トークナイザーモデルの読み込み
 tokenizer = BartTokenizer.from_pretrained('facebook/bart-base')
 
-train_dataset=XsumDataset(train_ds,tokenizer,document_max_length=2000,summary_max_length=)
-"""
+train_dataset=XsumDataset(train_ds,tokenizer,document_max_length=2000,summary_max_length=400)
+
+#トークナイズ結果確認
+for data in train_dataset:
+    print("document")
+    print(data["document"])
+    print(data["document_ids"])
+    print(data["summary"])
+    print(data["summary_ids"])
+
+    break
