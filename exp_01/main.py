@@ -53,6 +53,7 @@ class XsumDataset(Dataset):
             truncation=True,
             return_tensors="pt",
             return_attention_mask=True,
+            add_special_tokens=True,
         )
 
         summary_encoding = self.tokenizer.encode_plus(
@@ -62,6 +63,7 @@ class XsumDataset(Dataset):
             truncation=True,
             return_tensors="pt",
             return_attention_mask=True,
+            add_special_tokens=True,
         )
 
         return dict(
@@ -72,10 +74,6 @@ class XsumDataset(Dataset):
             summary_ids=summary_encoding["input_ids"].flatten(),
             summary_attention_mask=summary_encoding["attention_mask"].flatten(),
         )
-
-
-
-
 
 
 
@@ -94,4 +92,8 @@ for data in train_dataset:
     print(data["summary"])
     print(data["summary_ids"])
     print(data["summary_attention_mask"])
+    break
 
+#モデルの読み込み
+model = BartModel.from_pretrained('facebook/bart-base')
+model.config.max_position_embeddings
