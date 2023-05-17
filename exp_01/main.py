@@ -52,6 +52,7 @@ class XsumDataset(Dataset):
             padding='max_length',
             truncation=True,
             return_tensors="pt",
+            return_attention_mask=True,
         )
 
         summary_encoding = self.tokenizer.encode_plus(
@@ -60,13 +61,16 @@ class XsumDataset(Dataset):
             padding='max_length',
             truncation=True,
             return_tensors="pt",
+            return_attention_mask=True,
         )
 
         return dict(
             document=document,
             document_ids=document_encoding["input_ids"].flatten(),
+            document_attention_mask=document_encoding["attention_mask"].flatten(),
             summary=summary,
             summary_ids=summary_encoding["input_ids"].flatten(),
+            summary_attention_mask=summary_encoding["attention_mask"].flatten(),
         )
 
 
