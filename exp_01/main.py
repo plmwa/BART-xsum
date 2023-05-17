@@ -49,7 +49,7 @@ class XsumDataset(Dataset):
         document_encoding = self.tokenizer.encode_plus(
             document,
             max_length=self.document_max_length,
-            padding=True,
+            padding='max_length',
             truncation=True,
             return_tensors="pt",
         )
@@ -57,7 +57,7 @@ class XsumDataset(Dataset):
         summary_encoding = self.tokenizer.encode_plus(
             summary,
             max_length=self.document_max_length,
-            padding=True,
+            padding='max_length',
             truncation=True,
             return_tensors="pt",
         )
@@ -78,7 +78,7 @@ class XsumDataset(Dataset):
 #トークナイザーモデルの読み込み
 tokenizer = BartTokenizer.from_pretrained('facebook/bart-base')
 
-train_dataset=XsumDataset(train_ds,tokenizer,document_max_length=2000,summary_max_length=400)
+train_dataset=XsumDataset(train_ds,tokenizer,document_max_length=200,summary_max_length=40)
 
 #トークナイズ結果確認
 i=1
