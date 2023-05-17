@@ -80,7 +80,7 @@ class XsumDataset(Dataset):
 #トークナイザーモデルの読み込み
 tokenizer = BartTokenizer.from_pretrained('facebook/bart-base')
 
-train_dataset=XsumDataset(train_ds,tokenizer,document_max_length=2000,summary_max_length=400)
+train_dataset=XsumDataset(train_ds,tokenizer,document_max_length=1024,summary_max_length=400)
 
 #トークナイズ結果確認
 for data in train_dataset:
@@ -96,4 +96,3 @@ for data in train_dataset:
 
 #モデルの読み込み
 model = BartModel.from_pretrained('facebook/bart-base')
-print(model.config.max_position_embeddings)
