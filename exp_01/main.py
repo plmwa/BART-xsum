@@ -50,6 +50,7 @@ class XsumDataset(Dataset):
             document,
             max_length=self.document_max_length,
             padding="max_length",
+            truncation=True,
             return_tensors="pt",
         )
 
@@ -57,6 +58,7 @@ class XsumDataset(Dataset):
             summary,
             max_length=self.document_max_length,
             padding="max_length",
+            truncation=True,
             return_tensors="pt",
         )
 
