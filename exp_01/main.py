@@ -156,7 +156,7 @@ def main(cfg: DictConfig):
     val_df = pd.DataFrame(val_ds)
     test_df = pd.DataFrame(test_ds)
 
-
+    print(train_df)
     #トークナイザーモデルの読み込み
     tokenizer = BartTokenizer.from_pretrained('facebook/bart-base')
     #Datasetのdocumentは2000くらい長さあるけど、今回使うBartの入力がmax1024だから1024以降の文は切り捨てる
