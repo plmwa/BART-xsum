@@ -9,7 +9,8 @@ from torch.utils.data import DataLoader, Dataset
 import pytorch_lightning as pl
 #pandas
 import pandas as pd
-
+#hydra
+import hydra
 
 #Xsumのオブジェクト
 """
