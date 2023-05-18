@@ -12,7 +12,11 @@ from torch.utils.data import DataLoader, Dataset
 
 xsum = load_dataset("xsum")
 train_ds = xsum["train"]
+val_ds = xsum["validation"]
+test_ds = xsum["test"]
 
+print(type(train_ds))
+"""
 #Xsumのオブジェクト
 """
 DatasetDict({
@@ -80,6 +84,69 @@ class XsumDataset(Dataset):
 #トークナイザーモデルの読み込み
 tokenizer = BartTokenizer.from_pretrained('facebook/bart-base')
 
+
+#DataLoderの作成
+class XsumDataModule(pl.LightningDataModule):
+    def __init__(
+        self,
+        train_df,
+        valid_df,
+        test_df,
+        tokenizer,
+        batch_size,
+        text_max_token_length,
+        summary_max_token_length,
+    ):
+
+    super().__init__()
+    self.train_df = train_df
+    self.valid_df = valid_df
+    self.test_df = test_df
+    self.batch_size = batch_size
+    self.document_max_token_length = document_max_token_length
+    self.summary_max_token_length = summary_max_token_lenght
+    self.tokenizer = tokenizer
+
+    def setup(self):
+        self.train_dataset = XsumDataset(
+            self.train_df,
+            self.tokenizer,
+            self.max_length,
+            self.document_columm_name,
+            self.label_column_name,
+        )
+        self.vaild_dataset = XsumDataset(
+            self.valid_df,
+            self.tokenizer,
+            self.max_length,
+            self.document_columm_name,
+            self.label_column_name,
+        )
+        self.test_dataset = XsumDataset(
+            self.test_df,
+            self.tokenizer,
+            self.document_max_token_length,
+            self.summary_max_token_length,
+        )
+
+    def train_dataloader(self):
+        return DataLoader(
+            self.train_dataset,
+            batch_size=self.batch_size,
+            shuffle=True,
+            num_workers=os.cpu_count(),
+        )
+
+     def val_dataloader(self):
+        return DataLoader(
+            self.vaild_dataset, batch_size=self.batch_size, num_workers=os.cpu_count()
+        )
+     def test_dataloader(self):
+        return DataLoader(
+            self.test_dataset, batch_size=self.batch_size, num_workers=os.cpu_count()
+        )
+    
+
 train_dataset=XsumDataset(train_ds,tokenizer,document_max_length=1024,summary_max_length=400)
 
 #トークナイズ結果確認
@@ -94,5 +161,12 @@ for data in train_dataset:
     print(data["summary_attention_mask"])
     break
 
+
+data_module = XsumDataModule(
+    train_ds=
+)
+
+
 #モデルの読み込み
 model = BartModel.from_pretrained('facebook/bart-base')
+"""
