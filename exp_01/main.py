@@ -177,10 +177,10 @@ def main(cfg: DictConfig):
         train_df=train_df,
         valid_df=val_df,
         test_df=test_df,
+        tokenizer=tokenizer,
         batch_size=cfg.training.batch_size,
         document_max_token_length=cfg.model.document_max_length,
         summary_max_token_length=cfg.model.summary_max_length,
-        tokenizer=tokenizer,
     )
     data_module.setup()
 
