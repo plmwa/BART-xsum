@@ -86,7 +86,7 @@ class XsumDataModule(pl.LightningDataModule):
         test_df,
         tokenizer,
         batch_size,
-        text_max_token_length,
+        document_max_token_length,
         summary_max_token_length,
     ):
 
