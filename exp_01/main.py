@@ -1,23 +1,16 @@
 #importライブラリ
 
-#データセット
+#dataset
 from datasets import load_dataset
 #transformers
 from transformers import BartTokenizer, BartModel
 #torch
 from torch.utils.data import DataLoader, Dataset
+#pandas
+import pandas as pd
 
-#データセットのダウンロード（xsum）
 
-
-xsum = load_dataset("xsum")
-train_ds = xsum["train"]
-val_ds = xsum["validation"]
-test_ds = xsum["test"]
-
-print(type(train_ds))
 #Xsumのオブジェクト
-'''
 """
 DatasetDict({
     train: Dataset({
@@ -79,10 +72,6 @@ class XsumDataset(Dataset):
             summary_attention_mask=summary_encoding["attention_mask"].flatten(),
         )
 
-
-
-#トークナイザーモデルの読み込み
-tokenizer = BartTokenizer.from_pretrained('facebook/bart-base')
 
 
 #DataLoderの作成
@@ -147,26 +136,56 @@ class XsumDataModule(pl.LightningDataModule):
         )
     
 
-train_dataset=XsumDataset(train_ds,tokenizer,document_max_length=1024,summary_max_length=400)
 
-#トークナイズ結果確認
-for data in train_dataset:
-    print("要約前文章")
-    print(data["document"])
-    print(data["document_ids"])
-    print(data["document_attention_mask"])
-    print("要約後文章")
-    print(data["summary"])
-    print(data["summary_ids"])
-    print(data["summary_attention_mask"])
-    break
+@hydra.main(config_path=".", config_name="config")
+
+def main(cfg: DictConfig):
+
+    #データセットのダウンロード（xsum）
+    xsum = load_dataset("xsum")
+    train_ds = xsum["train"]
+    val_ds = xsum["validation"]
+    test_ds = xsum["test"]
 
 
-data_module = XsumDataModule(
-    train_ds=
-)
+    #DataFrame変換、よくわからん意味あるのかな？
+    train_df = pd.DataFrame(train_ds)
+    val_df = pd.DataFrame(val_ds)
+    test_df = pd.DataFrame(test_ds)
 
 
-#モデルの読み込み
-model = BartModel.from_pretrained('facebook/bart-base')
-'''
+    #トークナイザーモデルの読み込み
+    tokenizer = BartTokenizer.from_pretrained('facebook/bart-base')
+    #Datasetのdocumentは2000くらい長さあるけど、今回使うBartの入力がmax1024だから1024以降の文は切り捨てる
+    train_dataset=XsumDataset(train_df,tokenizer,document_max_length=1024,summary_max_length=400)
+
+    #トークナイズ結果確認
+    for data in train_dataset:
+        print("要約前文章")
+        print(data["document"])
+        print(data["document_ids"])
+        print(data["document_attention_mask"])
+        print("要約後文章")
+        print(data["summary"])
+        print(data["summary_ids"])
+        print(data["summary_attention_mask"])
+        break
+
+
+
+    data_module = DataModuleGenerator(
+        train_df=train_df,
+        valid_df=val_df,
+        test_df=test_df,
+        tokenizer=tokenizer,
+        batch_size=cfg.training.batch_size,
+        text_max_token_len=cfg.model.document_max_length,
+        summary_max_token_len=cfg.model.summary_max_length,
+    )
+    data_module.setup()
+
+    #モデルの読み込み
+    model = BartModel.from_pretrained('facebook/bart-base')
+
+if __name__ == "__main__":
+    main()
