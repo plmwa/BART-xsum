@@ -1,6 +1,5 @@
 #importライブラリ
-import os
-os.environ["HYDRA_FULL_ERROR"] = "1"
+
 #dataset
 from datasets import load_dataset
 #transformers
@@ -176,7 +175,7 @@ def main(cfg: DictConfig):
         break
 
 
-
+    '''
     data_module = DataModuleGenerator(
         train_df=train_df,
         valid_df=val_df,
@@ -187,7 +186,7 @@ def main(cfg: DictConfig):
         summary_max_token_len=cfg.model.summary_max_length,
     )
     data_module.setup()
-
+'''
     #モデルの読み込み
     model = BartModel.from_pretrained('facebook/bart-base')
 
