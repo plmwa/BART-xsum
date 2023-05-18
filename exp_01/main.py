@@ -103,16 +103,14 @@ class XsumDataModule(pl.LightningDataModule):
         self.train_dataset = XsumDataset(
             self.train_df,
             self.tokenizer,
-            self.max_length,
-            self.document_columm_name,
-            self.label_column_name,
+            self.document_max_token_length,
+            self.summary_max_token_length,
         )
         self.vaild_dataset = XsumDataset(
             self.valid_df,
             self.tokenizer,
-            self.max_length,
-            self.document_columm_name,
-            self.label_column_name,
+            self.document_max_token_length,
+            self.summary_max_token_length,
         )
         self.test_dataset = XsumDataset(
             self.test_df,
@@ -179,10 +177,10 @@ def main(cfg: DictConfig):
         train_df=train_df,
         valid_df=val_df,
         test_df=test_df,
-        tokenizer=tokenizer,
         batch_size=cfg.training.batch_size,
-        text_max_token_length=cfg.model.document_max_length,
+        document_max_token_length=cfg.model.document_max_length,
         summary_max_token_length=cfg.model.summary_max_length,
+        tokenizer=tokenizer,
     )
     data_module.setup()
 
