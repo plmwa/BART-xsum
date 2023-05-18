@@ -175,7 +175,7 @@ def main(cfg: DictConfig):
         break
 
 
-    data_module = DataModuleGenerator(
+    data_module = XsumDataModule(
         train_df=train_df,
         valid_df=val_df,
         test_df=test_df,
@@ -185,7 +185,7 @@ def main(cfg: DictConfig):
         summary_max_token_len=cfg.model.summary_max_length,
     )
     data_module.setup()
-    
+
     #モデルの読み込み
     model = BartModel.from_pretrained('facebook/bart-base')
 
