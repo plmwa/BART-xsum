@@ -11,6 +11,7 @@ import pytorch_lightning as pl
 import pandas as pd
 #hydra
 import hydra
+from omegaconf import DictConfig
 
 #Xsumのオブジェクト
 """
