@@ -87,14 +87,14 @@ class XsumDataModule(pl.LightningDataModule):
         summary_max_token_length,
     ):
 
-    super().__init__()
-    self.train_df = train_df
-    self.valid_df = valid_df
-    self.test_df = test_df
-    self.batch_size = batch_size
-    self.document_max_token_length = document_max_token_length
-    self.summary_max_token_length = summary_max_token_lenght
-    self.tokenizer = tokenizer
+        super().__init__()
+        self.train_df = train_df
+        self.valid_df = valid_df
+        self.test_df = test_df
+        self.batch_size = batch_size
+        self.document_max_token_length = document_max_token_length
+        self.summary_max_token_length = summary_max_token_lenght
+        self.tokenizer = tokenizer
 
     def setup(self):
         self.train_dataset = XsumDataset(
