@@ -181,8 +181,8 @@ def main(cfg: DictConfig):
         test_df=test_df,
         tokenizer=tokenizer,
         batch_size=cfg.training.batch_size,
-        text_max_token_len=cfg.model.document_max_length,
-        summary_max_token_len=cfg.model.summary_max_length,
+        text_max_token_length=cfg.model.document_max_length,
+        summary_max_token_length=cfg.model.summary_max_length,
     )
     data_module.setup()
 
