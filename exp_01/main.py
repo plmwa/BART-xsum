@@ -96,7 +96,7 @@ class XsumDataModule(pl.LightningDataModule):
         self.test_df = test_df
         self.batch_size = batch_size
         self.document_max_token_length = document_max_token_length
-        self.summary_max_token_length = summary_max_token_lenght
+        self.summary_max_token_length = summary_max_token_length
         self.tokenizer = tokenizer
 
     def setup(self):
