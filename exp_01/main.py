@@ -1,19 +1,19 @@
-#importライブラリ
+# importライブラリ
 
-#dataset
+# dataset
 from datasets import load_dataset
-#transformers
+# transformers
 from transformers import BartTokenizer, BartModel
-#torch
+# torch
 from torch.utils.data import DataLoader, Dataset
 import pytorch_lightning as pl
-#pandas
+# pandas
 import pandas as pd
-#hydra
+# hydra
 import hydra
 from omegaconf import DictConfig
 
-#Xsumのオブジェクト
+# Xsumのオブジェクト
 """
 DatasetDict({
     train: Dataset({
@@ -31,18 +31,21 @@ DatasetDict({
 })
 """
 
+# Dataset読み込みクラス
+
+
 class XsumDataset(Dataset):
-    def __init__(self,data,tokenizer,document_max_length,summary_max_length):
-        self.data=data
-        self.tokenizer=tokenizer
-        self.document_max_length=document_max_length
-        self.summary_max_length=summary_max_length
+    def __init__(self, data, tokenizer, document_max_length, summary_max_length):
+        self.data = data
+        self.tokenizer = tokenizer
+        self.document_max_length = document_max_length
+        self.summary_max_length = summary_max_length
 
     def __len__(self):
         return len(self.data)
-    
-    def __getitem__(self,index):
-        data_row=self.data.iloc[index]
+
+    def __getitem__(self, index):
+        data_row = self.data.iloc[index]
         document = data_row["document"]
         summary = data_row["summary"]
 
@@ -69,15 +72,16 @@ class XsumDataset(Dataset):
         return dict(
             document=document,
             document_ids=document_encoding["input_ids"].flatten(),
-            document_attention_mask=document_encoding["attention_mask"].flatten(),
+            document_attention_mask=document_encoding["attention_mask"].flatten(
+            ),
             summary=summary,
             summary_ids=summary_encoding["input_ids"].flatten(),
-            summary_attention_mask=summary_encoding["attention_mask"].flatten(),
+            summary_attention_mask=summary_encoding["attention_mask"].flatten(
+            ),
         )
 
 
-
-#DataLoderの作成
+# DataLoderの作成
 class XsumDataModule(pl.LightningDataModule):
     def __init__(
         self,
@@ -131,36 +135,38 @@ class XsumDataModule(pl.LightningDataModule):
         return DataLoader(
             self.vaild_dataset, batch_size=self.batch_size, num_workers=os.cpu_count()
         )
+
     def test_dataloader(self):
         return DataLoader(
             self.test_dataset, batch_size=self.batch_size, num_workers=os.cpu_count()
         )
-    
+
+
+# モデル定義
 
 
 @hydra.main(config_path=".", config_name="config")
-
 def main(cfg: DictConfig):
 
-    #データセットのダウンロード（xsum）
+    # データセットのダウンロード（xsum）
     xsum = load_dataset("xsum")
     train_ds = xsum["train"]
     val_ds = xsum["validation"]
     test_ds = xsum["test"]
 
-
-    #DataFrame変換、よくわからん意味あるのかな？
+    # DataFrame変換、よくわからん意味あるのかな？多分やんなくてもいい（Datasetクラスの記述は必要になる）
     train_df = pd.DataFrame(train_ds)
     val_df = pd.DataFrame(val_ds)
     test_df = pd.DataFrame(test_ds)
 
     print(train_df)
-    #トークナイザーモデルの読み込み
+    # トークナイザーモデルの読み込み
     tokenizer = BartTokenizer.from_pretrained('facebook/bart-base')
-    #Datasetのdocumentは2000くらい長さあるけど、今回使うBartの入力がmax1024だから1024以降の文は切り捨てる
-    train_dataset=XsumDataset(train_df,tokenizer,document_max_length=1024,summary_max_length=400)
+    # Datasetのdocumentは2000くらい長さあるけど、今回使うBartの入力がmax1024だから1024以降の文は切り捨てる
+    train_dataset = XsumDataset(
+        train_df, tokenizer, document_max_length=1024, summary_max_length=400)
 
-    #トークナイズ結果確認
+    # トークナイズ結果確認
     for data in train_dataset:
         print("要約前文章")
         print(data["document"])
@@ -171,7 +177,6 @@ def main(cfg: DictConfig):
         print(data["summary_ids"])
         print(data["summary_attention_mask"])
         break
-
 
     data_module = XsumDataModule(
         train_df=train_df,
@@ -184,8 +189,6 @@ def main(cfg: DictConfig):
     )
     data_module.setup()
 
-    #モデルの読み込み
-    model = BartModel.from_pretrained('facebook/bart-base')
 
 if __name__ == "__main__":
     main()
