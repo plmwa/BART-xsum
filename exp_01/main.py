@@ -16,8 +16,8 @@ val_ds = xsum["validation"]
 test_ds = xsum["test"]
 
 print(type(train_ds))
-"""
 #Xsumのオブジェクト
+'''
 """
 DatasetDict({
     train: Dataset({
@@ -169,4 +169,4 @@ data_module = XsumDataModule(
 
 #モデルの読み込み
 model = BartModel.from_pretrained('facebook/bart-base')
-"""
+'''
