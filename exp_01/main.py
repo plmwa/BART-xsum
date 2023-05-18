@@ -126,11 +126,11 @@ class XsumDataModule(pl.LightningDataModule):
             num_workers=os.cpu_count(),
         )
 
-     def val_dataloader(self):
+    def val_dataloader(self):
         return DataLoader(
             self.vaild_dataset, batch_size=self.batch_size, num_workers=os.cpu_count()
         )
-     def test_dataloader(self):
+    def test_dataloader(self):
         return DataLoader(
             self.test_dataset, batch_size=self.batch_size, num_workers=os.cpu_count()
         )
