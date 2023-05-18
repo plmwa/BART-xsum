@@ -1,5 +1,6 @@
 #importライブラリ
-
+import os
+os.environ["HYDRA_FULL_ERROR"] = "1"
 #dataset
 from datasets import load_dataset
 #transformers
