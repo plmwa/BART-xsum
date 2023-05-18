@@ -42,7 +42,7 @@ class XsumDataset(Dataset):
         return len(self.data)
     
     def __getitem__(self,index):
-        data_row=self.data[index]
+        data_row=self.data.iloc[index]
         document = data_row["document"]
         summary = data_row["summary"]
 
@@ -160,7 +160,7 @@ def main(cfg: DictConfig):
     #トークナイザーモデルの読み込み
     tokenizer = BartTokenizer.from_pretrained('facebook/bart-base')
     #Datasetのdocumentは2000くらい長さあるけど、今回使うBartの入力がmax1024だから1024以降の文は切り捨てる
-    train_dataset=XsumDataset(train_ds,tokenizer,document_max_length=1024,summary_max_length=400)
+    train_dataset=XsumDataset(train_df,tokenizer,document_max_length=1024,summary_max_length=400)
 
     #トークナイズ結果確認
     for data in train_dataset:
