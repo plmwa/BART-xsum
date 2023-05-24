@@ -254,6 +254,10 @@ class CustumBart(pl.LightningModule):
     def test_epoch_end(self, outputs):
         self._epoch_end(outputs, mode="test")
 
+    def configure_optimizers():
+        optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
+        return optimizer
+
 
 
 
