@@ -234,7 +234,7 @@ class CustumBart(pl.LightningModule):
         self.log("val/loss",results["loss"],prog_bar=True)
         return {
             "loss":results["loss"],
-            "text": batch["text"],
+            "text": batch["document"],
             "summary": batch["summary"],
             "predicted_text": predicted_texts,
         }
@@ -246,7 +246,7 @@ class CustumBart(pl.LightningModule):
         self.log("test/loss",results["loss"],prog_bar=True)
         return {
             "loss":results["loss"],
-            "text": batch["text"],
+            "text": batch["document"],
             "summary": batch["summary"],
             "predicted_text": predicted_texts,
         }
