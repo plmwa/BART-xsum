@@ -303,7 +303,7 @@ def main(cfg: DictConfig):
 
     #Trainer    
     wandb.login()
-    trained_model = CustumBart(tokenizer, cfg)
+    model = CustumBart(tokenizer, cfg)
     current = (datetime.datetime.now() + datetime.timedelta(hours=9)).strftime(
         "%Y%m%d_%H%M%S"
     )
