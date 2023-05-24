@@ -264,26 +264,12 @@ class CustumBart(pl.LightningModule):
     #最適化関数
     def configure_optimizers(self):
         parameters=dict(
-        data_module=dict(
-            parameters=dict(
-                batch_size=dict(
-                    values=[1, 2, 3, 4],
+            batch_size=dict(
+                values=[1, 2, 3, 4],
                 ),
-                text_max_length=1024,  # データセットの入力テキストは21~25字
-                summary_max_length=400,
+            text_max_length=1024,  # データセットの入力テキストは21~25字
+            summary_max_length=400,
             )
-        ),
-        optimizer=dict(
-            parameters=dict(
-                name=dict(
-                    values=["AdamW", "RAdam"],
-                ),
-                lr=dict(
-                    values=[1e-5, 5e-5, 9e-5, 1e-6],
-                ),
-            ),
-        ),
-        )
         optimizer = torch.optim.Adam(parameters(), lr=1e-3)
         return optimizer
 
