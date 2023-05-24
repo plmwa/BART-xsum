@@ -76,10 +76,11 @@ class XsumDataset(Dataset):
         )
         summary_ids = summary_encoding["input_ids"]
         summary_ids[
-            summary_ids == 0
+            summary_ids == 1
         ] = (
             -100
         )  # Note: the input_ids includes padding too, so replace pad tokens(zero value) with value of -100
+        #なぜpaddingが1になってしまうのか
 
 
         return dict(
@@ -116,7 +117,7 @@ class XsumDataModule(pl.LightningDataModule):
         self.summary_max_token_length = summary_max_token_length
         self.tokenizer = tokenizer
 
-    def setup(self):
+    def setup(self,stage=None):
         self.train_dataset = XsumDataset(
             self.train_df,
             self.tokenizer,
