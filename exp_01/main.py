@@ -2,7 +2,6 @@
 import datetime
 import random
 import time
-from box import Box
 # dataset
 from datasets import load_dataset
 # transformers
@@ -315,7 +314,6 @@ def main(cfg: DictConfig):
         id=current,
         save_code=True,
     )
-    config = Box(dict(wandb.config))
     #ここらへんはあとでhydraに
     early_stopping=dict(
         monitor="val/loss",
