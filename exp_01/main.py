@@ -329,18 +329,15 @@ def main(cfg: DictConfig):
     )
     wandb_logger.watch(model, log="all")
 
-    checkpoint=dict(
-        monitor="val/loss",
-        mode="min",
-        filename="{epoch}",
-        verbose=True,
-    )
 
     MODEL_OUTPUT_DIR = "/content/drive/MyDrive/MurataLab/summary/models/" + current
     
     checkpoint_callback = ModelCheckpoint(
         dirpath=MODEL_OUTPUT_DIR,
-        checkpoint=checkpoint,
+        monitor="val/loss",
+        mode="min",
+        filename="{epoch}",
+        verbose=True,
     )
 
     progress_bar = RichProgressBar()
