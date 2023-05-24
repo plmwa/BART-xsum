@@ -195,7 +195,7 @@ class CustumBart(pl.LightningModule):
         output = self.model.generate(
             document_ids,
             attention_mask=document_attention_mask,
-            max_length=self.cfg.model.max_length,
+            max_length=self.cfg.model.document_max_length,
             num_beams=1,
             repetition_penalty=2.5,
             length_penalty=1.0,
