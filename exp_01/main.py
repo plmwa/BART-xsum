@@ -167,6 +167,9 @@ class CustumBart(pl.LightningModule):
         self.tokenizer = tokenizer
         self.cfg = cfg
         self.model=BartForConditionalGeneration.from_pretrained(pretrained_model)
+        #https://github.com/Lightning-AI/lightning/pull/16520 より移行
+        self.validation_step_outputs = []
+        self.test_step_outputs = []
     
     def forward(
         self,
@@ -225,6 +228,7 @@ class CustumBart(pl.LightningModule):
     def validation_step(self, batch, batch_size):
         results = self._step(batch)
         predicted_texts = self.predict(batch["text_ids"], batch["text_attention_mask"])
+        self.validation_step_outputs.append(results["loss"])
         self.log("val/loss",results["loss"],prog_bar=True)
         return {
             "loss":results["loss"],
@@ -236,6 +240,7 @@ class CustumBart(pl.LightningModule):
     def test_step(self, batch, batch_size):
         results = self._step(batch)
         predicted_texts = self.predict(batch["text_ids"], batch["text_attention_mask"])
+        self.test_step_outputs.append(results["loss"])
         self.log("test/loss",results["loss"],prog_bar=True)
         return {
             "loss":results["loss"],
@@ -244,15 +249,17 @@ class CustumBart(pl.LightningModule):
             "predicted_text": predicted_texts,
         }
 
-    def _epoch_end(self, outputs, mode):
-        avg_loss = torch.stack([x["loss"] for x in outputs]).mean()
-        self.log(f"{mode}/loss", avg_loss)
+    #validation_epoc_endが使えなくなったらしい　v2.0.0~
+    def on_validation_epoch_end(self):
+        epoch_average = torch.stack(self.validation_step_outputs).mean()
+        self.validation_step_outputs.clear()  # free memory
+        self.log("val/loss",epoch_average)
 
-    def validation_epoch_end(self, outputs):
-        self._epoch_end(outputs, mode="val")
+    def on_test_epoch_end(self):
+        epoch_average = torch.stack(self.test_step_outputs).mean()
+        self.test_step_outputs.clear()  # free memory
+        self.log("test/loss",epoch_average)
 
-    def test_epoch_end(self, outputs):
-        self._epoch_end(outputs, mode="test")
 
     def configure_optimizers():
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
