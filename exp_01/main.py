@@ -279,7 +279,7 @@ def main(cfg: DictConfig):
     val_ds = xsum["validation"]
     test_ds = xsum["test"]
 
-    # DataFrame変換、よくわからん意味あるのかな？多分やんなくてもいい（Datasetクラスの記述は必要になる）
+    # DataFrame変換、よくわからん意味あるのかな？多分やんなくてもいい（Datasetクラスの記述変更は必要になる）
     train_df = pd.DataFrame(train_ds)
     val_df = pd.DataFrame(val_ds)
     test_df = pd.DataFrame(test_ds)
@@ -314,9 +314,8 @@ def main(cfg: DictConfig):
     )
     data_module.setup()
 
-    #Trainer    
+    #wandbセットアップ
     wandb.login()
-    model = CustumBart(tokenizer, cfg)
     current = (datetime.datetime.now() + datetime.timedelta(hours=9)).strftime(
         "%Y%m%d_%H%M%S"
     )
@@ -327,7 +326,15 @@ def main(cfg: DictConfig):
         id=current,
         save_code=True,
     )
-    #ここらへんはあとでhydraに
+    wandb_logger = WandbLogger(
+        log_model=False,
+    )
+    #wandb_logger.watch(model, log="all")
+
+    #Trainer    
+    model = CustumBart(tokenizer, cfg)
+    
+    #ここらへんはあとでhydra
     early_stopping=dict(
         monitor="val/loss",
         patience=3,
@@ -337,10 +344,7 @@ def main(cfg: DictConfig):
     early_stop_callback = EarlyStopping(
         early_stopping,
     )
-    wandb_logger = WandbLogger(
-        log_model=False,
-    )
-    wandb_logger.watch(model, log="all")
+    
 
 
     MODEL_OUTPUT_DIR = "/content/drive/MyDrive/MurataLab/summary/models/" + current
