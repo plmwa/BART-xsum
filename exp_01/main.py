@@ -1,18 +1,24 @@
 # importライブラリ
-
+import datetime
+import random
+import time
 # dataset
 from datasets import load_dataset
 # transformers
-from transformers import BartTokenizer, BartModel
+from transformers import BartTokenizer, BartModel,BartForConditionalGeneration
 # torch
+import torch
 from torch.utils.data import DataLoader, Dataset
 import pytorch_lightning as pl
+from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint,RichProgressBar
 # pandas
 import pandas as pd
 # hydra
 import hydra
 from omegaconf import DictConfig
-
+#wandb
+import wandb
+from pytorch_lightning.loggers import WandbLogger
 # Xsumのオブジェクト
 """
 DatasetDict({
@@ -68,6 +74,13 @@ class XsumDataset(Dataset):
             return_attention_mask=True,
             add_special_tokens=True,
         )
+        summary_ids = summary_encoding["input_ids"]
+        summary_ids[
+            summary_ids == 0
+        ] = (
+            -100
+        )  # Note: the input_ids includes padding too, so replace pad tokens(zero value) with value of -100
+
 
         return dict(
             document=document,
@@ -143,6 +156,105 @@ class XsumDataModule(pl.LightningDataModule):
 
 
 # モデル定義
+class CustumBart(pl.LightningModule):
+    def __init__(
+        self,
+        tokenizer,
+        cfg,
+        pretrained_model="facebook/bart-base",
+    ):
+        super().__init__()
+        self.tokenizer = tokenizer
+        self.cfg = cfg
+        self.model=BartForConditionalGeneration.from_pretrained(pretrained_model)
+    
+    def forward(
+        self,
+        document_ids,
+        document_attention_mask=None,
+        summary_ids=None,
+        summary_attention_mask=None,
+    ):
+        output = self.model(
+            input_ids=document_ids,
+            attention_mask=document_attention_mask,
+            labels=summary_ids,
+            decoder_attention_mask=summary_attention_mask,
+        )
+        return output.loss,output.logits
+    
+    def predict(self,
+                document_ids,
+                document_attention_mask,
+    ):
+        output = self.model.generate(
+            document_ids,
+            attention_mask=document_attention_mask,
+            max_length=self.cfg.model.max_length,
+            num_beams=1,
+            repetition_penalty=2.5,
+            length_penalty=1.0,
+            early_stopping=True,
+        )
+        return[
+            self.tokenizer.decode(
+                ids, skip_special_tokens=True, clean_up_tokenization_spaces=True
+            )
+            for ids in output
+        ]
+    
+    def _step(self,batch,return_text=False):
+        loss,logits = self(
+            document_ids=batch["document_ids"],
+            document_attention_mask=batch["document_attention_mask"],
+            summary_ids=batch["summary_ids"],
+            summary_attention_mask=batch["summary_attention_mask"],
+        )
+        return{
+            "loss":loss,
+            "logits":logits,
+            "document_ids":batch["document_ids"],
+            "summary_ids":batch["summary_ids"],
+        }
+    
+    def training_step(self,batch,batch_size):
+        results = self._step(batch)
+        self.log("train/loss",results["loss"],prog_bar=True)
+        return results
+    
+    def validation_step(self, batch, batch_size):
+        results = self._step(batch)
+        predicted_texts = self.predict(batch["text_ids"], batch["text_attention_mask"])
+        self.log("val/loss",results["loss"],prog_bar=True)
+        return {
+            "loss":results["loss"],
+            "text": batch["text"],
+            "summary": batch["summary"],
+            "predicted_text": predicted_texts,
+        }
+    
+    def test_step(self, batch, batch_size):
+        results = self._step(batch)
+        predicted_texts = self.predict(batch["text_ids"], batch["text_attention_mask"])
+        self.log("test/loss",results["loss"],prog_bar=True)
+        return {
+            "loss":results["loss"],
+            "text": batch["text"],
+            "summary": batch["summary"],
+            "predicted_text": predicted_texts,
+        }
+
+    def _epoch_end(self, outputs, mode):
+        avg_loss = torch.stack([x["loss"] for x in outputs]).mean()
+        self.log(f"{mode}/loss", avg_loss)
+
+    def validation_epoch_end(self, outputs):
+        self._epoch_end(outputs, mode="val")
+
+    def test_epoch_end(self, outputs):
+        self._epoch_end(outputs, mode="test")
+
+
 
 
 @hydra.main(config_path=".", config_name="config")
@@ -188,6 +300,65 @@ def main(cfg: DictConfig):
         summary_max_token_length=cfg.model.summary_max_length,
     )
     data_module.setup()
+
+    #Trainer    
+    wandb.login()
+    trained_model = CustumBart(tokenizer, cfg)
+    current = (datetime.datetime.now() + datetime.timedelta(hours=9)).strftime(
+        "%Y%m%d_%H%M%S"
+    )
+    wandb.init(
+        project=cfg.wandb.project,
+        name=current,
+        config=cfg,
+        id=current,
+        save_code=True,
+    )
+    config = Box(dict(wandb.config))
+    #ここらへんはあとでhydraに
+    early_stopping=dict(
+        monitor="val/loss",
+        patience=3,
+        mode="min",
+        min_delta=0.02,
+    )
+    early_stop_callback = EarlyStopping(
+        early_stopping,
+    )
+    wandb_logger = WandbLogger(
+        log_model=False,
+    )
+    wandb_logger.watch(model, log="all")
+
+    checkpoint=dict(
+        monitor="val/loss",
+        mode="min",
+        filename="{epoch}",
+        verbose=True,
+    )
+
+    MODEL_OUTPUT_DIR = "/content/drive/MyDrive/MurataLab/summary/models/" + current
+    
+    checkpoint_callback = ModelCheckpoint(
+        dirpath=MODEL_OUTPUT_DIR,
+        checkpoint=checkpoint,
+    )
+
+    progress_bar = RichProgressBar()
+
+    trainer = pl.Trainer(
+        max_epochs=cfg.training.n_epochs,
+        accelerator="auto",
+        devices="auto",
+        callbacks=[checkpoint_callback, early_stop_callback, progress_bar],
+        logger=wandb_logger,
+        deterministic=True,
+    )
+
+    trainer.fit(model, data_module)
+
+    trainer.test(model, data_module)
+
 
 
 if __name__ == "__main__":
