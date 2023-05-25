@@ -323,7 +323,7 @@ class CustumTrainer:
             valid_df=val_df,
             test_df=test_df,
             tokenizer=tokenizer,
-            batch_size=self.cfg.training.batch_size,
+            batch_size=self.cfg.model.data_module.batch_size,
             document_max_token_length=self.cfg.model.document_max_length,
             summary_max_token_length=self.cfg.model.summary_max_length,
         )
