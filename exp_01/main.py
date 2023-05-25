@@ -279,8 +279,6 @@ class CustumTrainer:
         )
         MODEL_OUTPUT_DIR = "/content/drive/MyDrive/murata-lab/graduation_research/BART_xsum_practice/BART_xsum_practice_src/exp_01/outputs" + current
         os.makedirs(MODEL_OUTPUT_DIR, exist_ok=True)
-        print(self.cfg.wandb.project)
-        print(self.cfg)
         wandb.init(
             project=self.cfg.wandb.project,
             name=current,
@@ -288,6 +286,10 @@ class CustumTrainer:
             id=current,
             save_code=True,
         )
+        wandb_logger = WandbLogger(
+            log_model=False,
+        )
+        wandb_logger.watch(model, log="all")
         # データセットのダウンロード（xsum）
         xsum = load_dataset("xsum")
         train_ds = xsum["train"]
@@ -365,9 +367,7 @@ class CustumTrainer:
 def main(cfg: DictConfig):
     #wandbセットアップ
     wandb.login()
-    wandb_logger = WandbLogger(
-        log_model=False,
-    )
+
 
     #sweepか普通に実行かどちらかをこのboolで選ぶ
     DO_SWEEP = False
