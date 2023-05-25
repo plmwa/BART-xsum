@@ -286,10 +286,7 @@ class CustumTrainer:
             id=current,
             save_code=True,
         )
-        wandb_logger = WandbLogger(
-            log_model=False,
-        )
-        wandb_logger.watch(model, log="all")
+
         # データセットのダウンロード（xsum）
         xsum = load_dataset("xsum")
         train_ds = xsum["train"]
@@ -333,6 +330,10 @@ class CustumTrainer:
 
         model = CustumBart(tokenizer, self.cfg)
 
+        wandb_logger = WandbLogger(
+            log_model=False,
+        )
+        wandb_logger.watch(model, log="all")
         
         early_stop_callback = EarlyStopping(
             self.cfg.model.early_stopping
