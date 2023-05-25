@@ -370,11 +370,36 @@ def main(cfg: DictConfig):
 
     #sweepか普通に実行かどちらかをこのboolで選ぶ
     DO_SWEEP = True
-
+    sweep_config = dict(
+        method="random",
+        metric=dict(
+            goal="minimize",
+            name="val/loss",
+        ),
+        parameters=dict(
+            data_module=dict(
+                parameters=dict(
+                    batch_size=dict(
+                        values=[1, 2, 3, 4],
+                    ),
+                    text_max_length=25,  # データセットの入力テキストは21~25字
+                    summary_max_length=17,
+                )
+            ),
+            optimizer=dict(
+                parameters=dict(
+                    name=dict(
+                        values=["AdamW", "RAdam"],
+                    ),
+                    lr=dict(
+                        values=[1e-5, 5e-5, 9e-5, 1e-6],
+                    ),
+                ),
+            ),
+        ),
+    )
     #Execute
     if DO_SWEEP:
-        with open("/content/drive/MyDrive/murata-lab/graduation_research/BART_xsum_practice/BART_xsum_practice_src/exp_01/config.yaml", "r") as file:
-            sweep_config = yaml.safe_load(file)
         sweep_id = wandb.sweep(sweep_config, project=cfg.wandb.project)
         trainer = CustumTrainer(cfg)
         wandb.agent(sweep_id, trainer.execute, count=10)
