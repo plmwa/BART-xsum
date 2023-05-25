@@ -197,7 +197,7 @@ class CustumBart(pl.LightningModule):
         output = self.model.generate(
             document_ids,
             attention_mask=document_attention_mask,
-            max_length=self.cfg.model.document_max_length,
+            max_length=self.cfg.model.data_module.document_max_length,
             num_beams=1,
             repetition_penalty=2.5,
             length_penalty=1.0,
@@ -324,8 +324,8 @@ class CustumTrainer:
             test_df=test_df,
             tokenizer=tokenizer,
             batch_size=self.cfg.model.data_module.batch_size,
-            document_max_token_length=self.cfg.model.document_max_length,
-            summary_max_token_length=self.cfg.model.summary_max_length,
+            document_max_token_length=self.cfg.model.data_module.document_max_length,
+            summary_max_token_length=self.cfg.model.data_module.summary_max_length,
         )
         data_module.setup()
 
