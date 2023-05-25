@@ -382,8 +382,8 @@ def main(cfg: DictConfig):
                     batch_size=dict(
                         values=[1, 2, 3, 4],
                     ),
-                    text_max_length=25,  # データセットの入力テキストは21~25字
-                    summary_max_length=17,
+                    document_max_length=1024,  # データセットの入力テキストは21~25字
+                    summary_max_length=400,
                 )
             ),
             optimizer=dict(
