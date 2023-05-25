@@ -2,7 +2,6 @@ wandb:
   project: Bart-xsum
   exp_num: 1
   tags: [bart]
-
 model:
   pretrained_model_name : 'facebook/bart-base'
   epoch : 2
@@ -27,22 +26,21 @@ model:
     verbose: True
   data : 
     train_rate: 0.9
-
 sweep:
   method: "random"
-    metric:
-        goal: "minimize"
-        name: "val/loss"
-    parameters:
-        data_module:
-            parameters:
-                batch_size:
-                    values: [1, 2, 3, 4]
-                text_max_length: 1024
-                summary_max_length: 400 #データセットの要約の最大が399語だった
-        optimizer:
-            parameters:
-                name:
-                    values: ["AdamW", "RAdam"]
-                lr:
-                    values: [1e-5, 5e-5, 9e-5, 1e-6]
+  metric:
+    goal: "minimize"
+    name: "val/loss"
+  parameters:
+    data_module:
+      parameters:
+        batch_size:
+          values: [1, 2, 3, 4]
+          text_max_length: 1024
+          summary_max_length: 400 #データセットの要約の最大が399語だった
+    optimizer:
+      parameters:
+        name:
+          values: ["AdamW", "RAdam"]
+        lr:
+          values: [1e-5, 5e-5, 9e-5, 1e-6]
