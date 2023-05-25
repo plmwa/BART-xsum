@@ -370,7 +370,8 @@ def main(cfg: DictConfig):
     DO_SWEEP = True
     #Execute
     if DO_SWEEP:
-        sweep_id = wandb.sweep(cfg.sweep, project=cfg.wandb.project)
+        sweep_config = wandb.config.sweep_config(path="sweep_config.yaml")
+        sweep_id = wandb.sweep(sweep_config, project=cfg.wandb.project)
         trainer = CustumTrainer(cfg)
         wandb.agent(sweep_id, trainer.execute, count=10)
     else:
