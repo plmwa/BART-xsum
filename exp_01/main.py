@@ -279,7 +279,8 @@ class CustumTrainer:
         )
         MODEL_OUTPUT_DIR = "/content/drive/MyDrive/murata-lab/graduation_research/BART_xsum_practice/BART_xsum_practice_src/exp_01/outputs" + current
         os.makedirs(MODEL_OUTPUT_DIR, exist_ok=True)
-
+        print(self.cfg.wandb.project)
+        print(self.cfg)
         wandb.init(
             project=self.cfg.wandb.project,
             name=current,
@@ -369,7 +370,7 @@ def main(cfg: DictConfig):
     )
 
     #sweepか普通に実行かどちらかをこのboolで選ぶ
-    DO_SWEEP = True
+    DO_SWEEP = False
     sweep_config = dict(
         method="random",
         metric=dict(
@@ -400,6 +401,8 @@ def main(cfg: DictConfig):
     )
     #Execute
     if DO_SWEEP:
+        print(cfg.wandb.project)
+        print(sweep_config)
         sweep_id = wandb.sweep(sweep_config, project=cfg.wandb.project)
         trainer = CustumTrainer(cfg)
         wandb.agent(sweep_id, trainer.execute, count=10)
