@@ -2,20 +2,47 @@ wandb:
   project: Bart-xsum
   exp_num: 1
   tags: [bart]
-path:
-  checkpoint_path: checkpoints
+
 model:
-  document_max_length: 1024
-  summary_max_length: 400
-training:
-  test_size: 0.3
-  n_epochs: 2
-  batch_size: 8
-  learning_rate: 0.01
-  text_column_name: article
-  label_column_name: label
-  optimizer_name: AdamW
-  optimizer_lr: 1e-3
-callbacks:
-  patience: 5
-  patience_min_delta: 0
+  pretrained_model_name : 'facebook/bart-base'
+  epoch : 2
+  seed : 40
+  accumulate_grad_batches: 4
+  data_module: 
+    batch_size : 2
+    document_max_length: 1024
+    summary_max_length: 400
+  optimizer:
+    name : "RAdam"
+    lr : 1e-5
+  early_stopping :
+    monitor: "val/loss"
+    patience: 3
+    mode : "min"
+    min_delta: 0.02
+  checkpoint :
+    monitor: "val/loss"
+    mode: "min"
+    filename: "2" #ここよくわからん
+    verbose: True
+  data : 
+    train_rate: 0.9
+
+sweep:
+  method: "random"
+    metric:
+        goal: "minimize"
+        name: "val/loss"
+    parameters:
+        data_module:
+            parameters:
+                batch_size:
+                    values: [1, 2, 3, 4]
+                text_max_length: 1024
+                summary_max_length: 400 #データセットの要約の最大が399語だった
+        optimizer:
+            parameters:
+                name:
+                    values: ["AdamW", "RAdam"]
+                lr:
+                    values: [1e-5, 5e-5, 9e-5, 1e-6]

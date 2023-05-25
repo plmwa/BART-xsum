@@ -267,110 +267,115 @@ class CustumBart(pl.LightningModule):
         optimizer = torch.optim.Adam(self.model.parameters(), lr=1e-3)
         return optimizer
 
+class CustumTrainer:
+    def __init__(self,cfg):
+        self.cfg = cfg
+    
+    def execute(self):
+        current = (datetime.datetime.now() + datetime.timedelta(hours=9)).strftime(
+            "%Y%m%d_%H%M%S"
+        )
+        MODEL_OUTPUT_DIR = "/content/drive/MyDrive/murata-lab/graduation_research/BART_xsum_practice/BART_xsum_practice_src/exp_01/outputs" + current
+        os.makedirs(MODEL_OUTPUT_DIR, exist_ok=True)
 
+        wandb.init(
+            project=self.cfg.wandb.project,
+            name=current,
+            config=self.cfg,
+            id=current,
+            save_code=True,
+        )
+        # データセットのダウンロード（xsum）
+        xsum = load_dataset("xsum")
+        train_ds = xsum["train"]
+        val_ds = xsum["validation"]
+        test_ds = xsum["test"]
+
+        # DataFrame変換、よくわからん意味あるのかな？多分やんなくてもいい（Datasetクラスの記述変更は必要になる）
+        train_df = pd.DataFrame(train_ds)
+        val_df = pd.DataFrame(val_ds)
+        test_df = pd.DataFrame(test_ds)
+
+        print(train_df)
+        # トークナイザーモデルの読み込み
+        tokenizer = BartTokenizer.from_pretrained(self.cfg.model.pretrained_model_name)
+        # Datasetのdocumentは2000くらい長さあるけど、今回使うBartの入力がmax1024だから1024以降の文は切り捨てる
+        train_dataset = XsumDataset(
+            train_df, tokenizer, document_max_length=self.cfg.model.data_module.document_max_length, summary_max_length=self.cfg.model.data_module.summary_max_length
+        )
+        # トークナイズ結果確認
+        for data in train_dataset:
+            print("要約前文章")
+            print(data["document"])
+            print(data["document_ids"])
+            print(data["document_attention_mask"])
+            print("要約後文章")
+            print(data["summary"])
+            print(data["summary_ids"])
+            print(data["summary_attention_mask"])
+            break
+
+        data_module = XsumDataModule(
+            train_df=train_df,
+            valid_df=val_df,
+            test_df=test_df,
+            tokenizer=tokenizer,
+            batch_size=self.cfg.training.batch_size,
+            document_max_token_length=self.cfg.model.document_max_length,
+            summary_max_token_length=self.cfg.model.summary_max_length,
+        )
+        data_module.setup()
+
+        model = CustumBart(tokenizer, self.cfg)
+
+        
+        early_stop_callback = EarlyStopping(
+            self.cfg.model.early_stopping
+        )
+        checkpoint_callback = ModelCheckpoint(
+            dirpath=MODEL_OUTPUT_DIR,
+            monitor="val/loss",
+            mode="min",
+            filename="{epoc}",
+            verbose=True,
+        )
+
+        progress_bar = RichProgressBar()
+
+        trainer = pl.Trainer(
+            max_epochs=self.cfg.model.epoch,
+            accelerator="auto",
+            devices="auto",
+            callbacks=[checkpoint_callback, early_stop_callback, progress_bar],
+            logger=wandb_logger,
+            deterministic=True,
+        )
+
+        trainer.fit(model, data_module)
+
+        trainer.test(model, data_module)
+
+        wandb.finish()
 
 
 @hydra.main(config_path=".", config_name="config")
 def main(cfg: DictConfig):
-
-    # データセットのダウンロード（xsum）
-    xsum = load_dataset("xsum")
-    train_ds = xsum["train"]
-    val_ds = xsum["validation"]
-    test_ds = xsum["test"]
-
-    # DataFrame変換、よくわからん意味あるのかな？多分やんなくてもいい（Datasetクラスの記述変更は必要になる）
-    train_df = pd.DataFrame(train_ds)
-    val_df = pd.DataFrame(val_ds)
-    test_df = pd.DataFrame(test_ds)
-
-    print(train_df)
-    # トークナイザーモデルの読み込み
-    tokenizer = BartTokenizer.from_pretrained('facebook/bart-base')
-    # Datasetのdocumentは2000くらい長さあるけど、今回使うBartの入力がmax1024だから1024以降の文は切り捨てる
-    train_dataset = XsumDataset(
-        train_df, tokenizer, document_max_length=1024, summary_max_length=400
-    )
-    # トークナイズ結果確認
-    for data in train_dataset:
-        print("要約前文章")
-        print(data["document"])
-        print(data["document_ids"])
-        print(data["document_attention_mask"])
-        print("要約後文章")
-        print(data["summary"])
-        print(data["summary_ids"])
-        print(data["summary_attention_mask"])
-        break
-
-    data_module = XsumDataModule(
-        train_df=train_df,
-        valid_df=val_df,
-        test_df=test_df,
-        tokenizer=tokenizer,
-        batch_size=cfg.training.batch_size,
-        document_max_token_length=cfg.model.document_max_length,
-        summary_max_token_length=cfg.model.summary_max_length,
-    )
-    data_module.setup()
-
     #wandbセットアップ
     wandb.login()
-    current = (datetime.datetime.now() + datetime.timedelta(hours=9)).strftime(
-        "%Y%m%d_%H%M%S"
-    )
-    wandb.init(
-        project=cfg.wandb.project,
-        name=current,
-        config=cfg,
-        id=current,
-        save_code=True,
-    )
     wandb_logger = WandbLogger(
         log_model=False,
     )
-    #wandb_logger.watch(model, log="all")
 
-    #Trainer    
-    model = CustumBart(tokenizer, cfg)
-    
-    #ここらへんはあとでhydra
-    early_stopping=dict(
-        monitor="val/loss",
-        patience=3,
-        mode="min",
-        min_delta=0.02,
-    )
-    early_stop_callback = EarlyStopping(
-        early_stopping,
-    )
-    
-
-
-    MODEL_OUTPUT_DIR = "/content/drive/MyDrive/MurataLab/summary/models/" + current
-    
-    checkpoint_callback = ModelCheckpoint(
-        dirpath=MODEL_OUTPUT_DIR,
-        monitor="val/loss",
-        mode="min",
-        filename="{epoch}",
-        verbose=True,
-    )
-
-    progress_bar = RichProgressBar()
-
-    trainer = pl.Trainer(
-        max_epochs=cfg.training.n_epochs,
-        accelerator="auto",
-        devices="auto",
-        callbacks=[checkpoint_callback, early_stop_callback, progress_bar],
-        logger=wandb_logger,
-        deterministic=True,
-    )
-
-    trainer.fit(model, data_module)
-
-    trainer.test(model, data_module)
+    #sweepか普通に実行かどちらかをこのboolで選ぶ
+    DO_SWEEP = True
+    #Execute
+    if DO_SWEEP:
+        sweep_id = wandb.sweep(cfg.sweep, project=cfg.wandb.project)
+        trainer = CustumTrainer(cfg)
+        wandb.agent(sweep_id, trainer.execute, count=10)
+    else:
+        trainer = CustumTrainer(config)
+        trainer.execute()
 
 
 
