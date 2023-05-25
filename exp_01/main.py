@@ -3,6 +3,7 @@ import datetime
 import random
 import time
 import os
+
 # dataset
 from datasets import load_dataset
 # transformers
@@ -15,6 +16,7 @@ from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint,RichProgr
 # pandas
 import pandas as pd
 # hydra
+import yaml
 import hydra
 from omegaconf import DictConfig
 #wandb
@@ -368,9 +370,11 @@ def main(cfg: DictConfig):
 
     #sweepか普通に実行かどちらかをこのboolで選ぶ
     DO_SWEEP = True
+
     #Execute
     if DO_SWEEP:
-        sweep_config = wandb.config.sweep_config(path="sweep_config.yaml")
+        with open("sweep_config.yaml", "r") as file:
+            sweep_config = yaml.safe_load(file)
         sweep_id = wandb.sweep(sweep_config, project=cfg.wandb.project)
         trainer = CustumTrainer(cfg)
         wandb.agent(sweep_id, trainer.execute, count=10)
