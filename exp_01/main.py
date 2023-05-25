@@ -373,7 +373,7 @@ def main(cfg: DictConfig):
 
     #Execute
     if DO_SWEEP:
-        with open("sweep_config.yaml", "r") as file:
+        with open("/content/drive/MyDrive/murata-lab/graduation_research/BART_xsum_practice/BART_xsum_practice_src/exp_01/config.yaml", "r") as file:
             sweep_config = yaml.safe_load(file)
         sweep_id = wandb.sweep(sweep_config, project=cfg.wandb.project)
         trainer = CustumTrainer(cfg)
