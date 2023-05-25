@@ -407,7 +407,7 @@ def main(cfg: DictConfig):
         trainer = CustumTrainer(cfg)
         wandb.agent(sweep_id, trainer.execute, count=10)
     else:
-        trainer = CustumTrainer(config)
+        trainer = CustumTrainer(cfg)
         trainer.execute()
 
 
