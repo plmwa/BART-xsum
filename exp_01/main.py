@@ -376,7 +376,7 @@ def main(cfg: DictConfig):
     #wandbセットアップ
     wandb.login()
 
-    
+    '''
     #sweepか普通に実行かどちらかをこのboolで選ぶ
     #sweepのコードうごかん
     DO_SWEEP = False
@@ -418,7 +418,7 @@ def main(cfg: DictConfig):
     else:
         trainer = CustumTrainer(cfg)
         trainer.execute()
-    
+    '''
     #predict
     MODEL_DIR="/content/drive/MyDrive/murata-lab/graduation_research/BART_xsum_practice/models"
     id = input("id (2023XXXX_XXXXXX) : ")
@@ -455,7 +455,7 @@ def main(cfg: DictConfig):
         generated_ids = trained_model.model.generate(
             input_ids=encoding["input_ids"],
             attention_mask=encoding["attention_mask"],
-            max_length=cfg.mode.data_module.summary_max_length,
+            max_length=cfg.model.data_module.summary_max_length,
             num_beams=4,
             repetition_penalty=2.5,
             # length_penalty=1.0,
