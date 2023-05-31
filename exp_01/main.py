@@ -277,7 +277,7 @@ class CustumTrainer:
         current = (datetime.datetime.now() + datetime.timedelta(hours=9)).strftime(
             "%Y%m%d_%H%M%S"
         )
-        MODEL_OUTPUT_DIR = "/content/drive/MyDrive/murata-lab/graduation_research/BART_xsum_practice/BART_xsum_practice_src/exp_01/outputs" + current
+        MODEL_OUTPUT_DIR = "/content/drive/MyDrive/murata-lab/graduation_research/BART_xsum_practice/models/" + current
         os.makedirs(MODEL_OUTPUT_DIR, exist_ok=True)
         wandb.init(
             project=self.cfg.wandb.project,
@@ -289,9 +289,10 @@ class CustumTrainer:
 
         # データセットのダウンロード（xsum）
         xsum = load_dataset("xsum")
-        train_ds = xsum["train"][0:1000]
-        val_ds = xsum["validation"][0:1000]
-        test_ds = xsum["test"][0:1000]
+        #とりま千文くらい
+        train_ds = xsum["train"][0:300]
+        val_ds = xsum["validation"][0:100]
+        test_ds = xsum["test"][0:50]
 
         # DataFrame変換、よくわからん意味あるのかな？多分やんなくてもいい（Datasetクラスの記述変更は必要になる）
         train_df = pd.DataFrame(train_ds)
@@ -316,7 +317,8 @@ class CustumTrainer:
             print(data["summary_ids"])
             print(data["summary_attention_mask"])
             break
-
+        
+        #dataをなんかいい感じにするやつ
         data_module = XsumDataModule(
             train_df=train_df,
             valid_df=val_df,
@@ -328,6 +330,7 @@ class CustumTrainer:
         )
         data_module.setup()
 
+        #CustumBartには学習のステップとか関数とかいろいろ自分で設定してる
         model = CustumBart(tokenizer, self.cfg)
 
         wandb_logger = WandbLogger(
@@ -336,7 +339,11 @@ class CustumTrainer:
         wandb_logger.watch(model, log="all")
         
         early_stop_callback = EarlyStopping(
-            self.cfg.model.early_stopping
+            #self.cfg.model.early_stopping
+            monitor= "val/loss",
+            patience= 3,
+            mode= "min",
+            min_delta= 0.02,
         )
         checkpoint_callback = ModelCheckpoint(
             dirpath=MODEL_OUTPUT_DIR,
@@ -348,6 +355,7 @@ class CustumTrainer:
 
         progress_bar = RichProgressBar()
 
+        
         trainer = pl.Trainer(
             max_epochs=self.cfg.model.epoch,
             accelerator="auto",
@@ -356,7 +364,7 @@ class CustumTrainer:
             logger=wandb_logger,
             deterministic=True,
         )
-
+        #学習まわすぞ
         trainer.fit(model, data_module)
 
         trainer.test(model, data_module)
@@ -448,7 +456,7 @@ def main(cfg: DictConfig):
         generated_ids = trained_model.model.generate(
             input_ids=encoding["input_ids"],
             attention_mask=encoding["attention_mask"],
-            max_length=config.data_module.summary_max_length,
+            max_length=cfg.data_module.summary_max_length,
             num_beams=4,
             repetition_penalty=2.5,
             # length_penalty=1.0,
