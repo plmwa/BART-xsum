@@ -290,9 +290,9 @@ class CustumTrainer:
         # データセットのダウンロード（xsum）
         xsum = load_dataset("xsum")
         #とりま千文くらい
-        train_ds = xsum["train"][0:300]
-        val_ds = xsum["validation"][0:100]
-        test_ds = xsum["test"][0:50]
+        train_ds = xsum["train"][0:3000]
+        val_ds = xsum["validation"][0:1000]
+        test_ds = xsum["test"][0:500]
 
         # DataFrame変換、よくわからん意味あるのかな？多分やんなくてもいい（Datasetクラスの記述変更は必要になる）
         train_df = pd.DataFrame(train_ds)
@@ -355,7 +355,7 @@ class CustumTrainer:
 
         
         trainer = pl.Trainer(
-            fast_dev_run=True,
+            fast_dev_run=False,
             max_epochs=self.cfg.model.epoch,
             accelerator="auto",
             devices="auto",
@@ -376,7 +376,7 @@ def main(cfg: DictConfig):
     #wandbセットアップ
     wandb.login()
 
-    '''
+    
     #sweepか普通に実行かどちらかをこのboolで選ぶ
     #sweepのコードうごかん
     DO_SWEEP = False
@@ -418,7 +418,7 @@ def main(cfg: DictConfig):
     else:
         trainer = CustumTrainer(cfg)
         trainer.execute()
-    '''
+    
     #predict
     MODEL_DIR="/content/drive/MyDrive/murata-lab/graduation_research/BART_xsum_practice/models"
     id = input("id (2023XXXX_XXXXXX) : ")
