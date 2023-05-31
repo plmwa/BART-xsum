@@ -347,7 +347,7 @@ class CustumTrainer:
             dirpath=MODEL_OUTPUT_DIR,
             monitor="val/loss",
             mode="min",
-            filename="{epoc}",
+            filename="{epoch}",
             verbose=True,
         )
 
@@ -355,6 +355,7 @@ class CustumTrainer:
 
         
         trainer = pl.Trainer(
+            fast_dev_run=True,
             max_epochs=self.cfg.model.epoch,
             accelerator="auto",
             devices="auto",
