@@ -376,7 +376,7 @@ def main(cfg: DictConfig):
     #wandbセットアップ
     wandb.login()
 
-    '''
+    
     #sweepか普通に実行かどちらかをこのboolで選ぶ
     #sweepのコードうごかん
     DO_SWEEP = False
@@ -418,7 +418,7 @@ def main(cfg: DictConfig):
     else:
         trainer = CustumTrainer(cfg)
         trainer.execute()
-    '''
+    
     #predict
     MODEL_DIR="/content/drive/MyDrive/murata-lab/graduation_research/BART_xsum_practice/models"
     id = input("id (2023XXXX_XXXXXX) : ")
