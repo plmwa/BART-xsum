@@ -289,9 +289,9 @@ class CustumTrainer:
 
         # データセットのダウンロード（xsum）
         xsum = load_dataset("xsum")
-        train_ds = xsum["train"]
-        val_ds = xsum["validation"]
-        test_ds = xsum["test"]
+        train_ds = xsum["train"][0:1000]
+        val_ds = xsum["validation"][0:1000]
+        test_ds = xsum["test"][0:1000]
 
         # DataFrame変換、よくわからん意味あるのかな？多分やんなくてもいい（Datasetクラスの記述変更は必要になる）
         train_df = pd.DataFrame(train_ds)
@@ -371,6 +371,7 @@ def main(cfg: DictConfig):
 
 
     #sweepか普通に実行かどちらかをこのboolで選ぶ
+    #sweepのコードうごかん
     DO_SWEEP = False
     sweep_config = dict(
         method="random",
@@ -411,6 +412,50 @@ def main(cfg: DictConfig):
         trainer = CustumTrainer(cfg)
         trainer.execute()
 
+    #predict
+    MODEL_DIR="/content/drive/MyDrive/murata-lab/graduation_research/BART_xsum_practice/models"
+    id = input("id (2023XXXX_XXXXXX) : ")
+    epoch = input("epoch: ")
+    tokenizer = T5Tokenizer.from_pretrained(cfg.model.pretrained_model_name)
+    trained_model = CustumBart(
+        tokenizer,
+        cfg=cfg,
+    )
+    trained_model.load_state_dict(
+        torch.load(
+            os.path.join(MODEL_DIR, id, f"epoch={epoch}.ckpt"),
+            map_location=torch.device("cpu"),
+        )["state_dict"]
+    )
+    trained_model.eval()
+    trained_model.freeze()
+
+    while True:
+        text = input("Text (exit): ")
+        if text == "exit":
+            break
+
+        t0 = time.time()
+        encoding = tokenizer.encode_plus(
+            text,
+            add_special_tokens=True,
+            max_length=cfg.model.data_module.document_max_length,
+            padding="max_length",
+            truncation=True,
+            return_attention_mask=True,
+            return_tensors="pt",
+        )
+        generated_ids = trained_model.model.generate(
+            input_ids=encoding["input_ids"],
+            attention_mask=encoding["attention_mask"],
+            max_length=config.data_module.summary_max_length,
+            num_beams=4,
+            repetition_penalty=2.5,
+            # length_penalty=1.0,
+            # early_stopping=True,
+        )
+        print("    Time: ", time.time() - t0)
+        print(f"    {tokenizer.batch_decode(generated_ids, skip_special_tokens=True)}")
 
 
 if __name__ == "__main__":
