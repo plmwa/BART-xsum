@@ -455,7 +455,7 @@ def main(cfg: DictConfig):
         generated_ids = trained_model.model.generate(
             input_ids=encoding["input_ids"],
             attention_mask=encoding["attention_mask"],
-            max_length=cfg.data_module.summary_max_length,
+            max_length=cfg.mode.data_module.summary_max_length,
             num_beams=4,
             repetition_penalty=2.5,
             # length_penalty=1.0,
