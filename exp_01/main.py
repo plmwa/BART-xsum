@@ -60,22 +60,22 @@ class XsumDataset(Dataset):
 
         document_encoding = self.tokenizer.encode_plus(
             document,
+            add_special_tokens=True,
             max_length=self.document_max_length,
             padding='max_length',
             truncation=True,
-            return_tensors="pt",
             return_attention_mask=True,
-            add_special_tokens=True,
+            return_tensors="pt",
         )
 
         summary_encoding = self.tokenizer.encode_plus(
             summary,
             max_length=self.document_max_length,
+            add_special_tokens=True,
             padding='max_length',
             truncation=True,
             return_tensors="pt",
             return_attention_mask=True,
-            add_special_tokens=True,
         )
         summary_ids = summary_encoding["input_ids"]
         summary_ids[
@@ -89,12 +89,10 @@ class XsumDataset(Dataset):
         return dict(
             document=document,
             document_ids=document_encoding["input_ids"].flatten(),
-            document_attention_mask=document_encoding["attention_mask"].flatten(
-            ),
+            document_attention_mask=document_encoding["attention_mask"].flatten(),
             summary=summary,
             summary_ids=summary_encoding["input_ids"].flatten(),
-            summary_attention_mask=summary_encoding["attention_mask"].flatten(
-            ),
+            summary_attention_mask=summary_encoding["attention_mask"].flatten(),
         )
 
 
@@ -266,7 +264,7 @@ class CustumBart(pl.LightningModule):
 
     #最適化関数
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=1e-3)
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=5e-10)
         return optimizer
 
 class CustumTrainer:
@@ -379,7 +377,7 @@ def main(cfg: DictConfig):
     
     #sweepか普通に実行かどちらかをこのboolで選ぶ
     #sweepのコードうごかん
-    DO_SWEEP = False
+    DO_SWEEP = True
     sweep_config = dict(
         method="random",
         metric=dict(
@@ -390,7 +388,7 @@ def main(cfg: DictConfig):
             data_module=dict(
                 parameters=dict(
                     batch_size=dict(
-                        values=[1, 2, 3, 4],
+                        values=[1, 2, 3, 4,5],
                     ),
                     document_max_length=1024,  # データセットの入力テキストは21~25字
                     summary_max_length=400,
@@ -402,7 +400,7 @@ def main(cfg: DictConfig):
                         values=["AdamW", "RAdam"],
                     ),
                     lr=dict(
-                        values=[1e-5, 5e-5, 9e-5, 1e-6],
+                        values=[1e-5, 5e-5, 9e-5, 1e-6,5e-10],
                     ),
                 ),
             ),
@@ -412,9 +410,9 @@ def main(cfg: DictConfig):
     if DO_SWEEP:
         print(cfg.wandb.project)
         print(sweep_config)
-        sweep_id = wandb.sweep(sweep_config, project=cfg.wandb.project)
+        sweep_id = wandb.sweep(sweep=sweep_config, project=cfg.wandb.project)
         trainer = CustumTrainer(cfg)
-        wandb.agent(sweep_id, trainer.execute, count=10)
+        wandb.agent(sweep_id, trainer.execute, count=5)
     else:
         trainer = CustumTrainer(cfg)
         trainer.execute()
