@@ -384,16 +384,18 @@ def main(cfg: DictConfig):
             goal="minimize",
             name="val/loss",
         ),
+        
         parameters=dict(
-            data_module=dict(
-                parameters=dict(
-                    batch_size=dict(
-                        values=[1, 2, 3, 4,5],
+            model=dict(
+                data_module=dict(
+                    parameters=dict(
+                        batch_size=dict(
+                            values=[1, 2, 3, 4,5],
+                        ),
+                        document_max_length=1024,  # データセットの入力テキストは21~25字
+                        summary_max_length=400,
                     ),
-                    document_max_length=1024,  # データセットの入力テキストは21~25字
-                    summary_max_length=400,
-                )
-            ),
+                ),
             optimizer=dict(
                 parameters=dict(
                     name=dict(
@@ -404,6 +406,7 @@ def main(cfg: DictConfig):
                     ),
                 ),
             ),
+        ),
         ),
     )
     #Execute
