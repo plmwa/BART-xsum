@@ -385,7 +385,7 @@ def main(cfg: DictConfig):
         ),
         
         parameters=dict(
-            model=dict(
+            bart_model=dict(
                 parameters=dict(
                     data_module=dict(
                         parameters=dict(
