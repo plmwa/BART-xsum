@@ -396,8 +396,6 @@ def main(cfg: DictConfig):
                             summary_max_length=400,
                         ),
                     ),
-                ),
-                parameters=dict(
                     optimizer=dict(
                         parameters=dict(
                             name=dict(
