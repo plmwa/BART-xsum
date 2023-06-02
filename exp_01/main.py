@@ -194,7 +194,7 @@ class CustumBart(pl.LightningModule):
         output = self.model.generate(
             document_ids,
             attention_mask=document_attention_mask,
-            max_length=self.cfg.model.data_module.document_max_length,
+            max_length=self.cfg.bart_model.data_module.document_max_length,
             num_beams=1,
             repetition_penalty=2.5,
             length_penalty=1.0,
@@ -298,10 +298,10 @@ class CustumTrainer:
 
         print(train_df)
         # トークナイザーモデルの読み込み
-        tokenizer = BartTokenizer.from_pretrained(self.cfg.model.pretrained_model_name)
+        tokenizer = BartTokenizer.from_pretrained(self.cfg.bart_model.pretrained_model_name)
         # Datasetのdocumentは2000くらい長さあるけど、今回使うBartの入力がmax1024だから1024以降の文は切り捨てる
         train_dataset = XsumDataset(
-            train_df, tokenizer, document_max_length=self.cfg.model.data_module.document_max_length, summary_max_length=self.cfg.model.data_module.summary_max_length
+            train_df, tokenizer, document_max_length=self.cfg.bart_model.data_module.document_max_length, summary_max_length=self.cfg.bart_model.data_module.summary_max_length
         )
         # トークナイズ結果確認
         for data in train_dataset:
@@ -321,9 +321,9 @@ class CustumTrainer:
             valid_df=val_df,
             test_df=test_df,
             tokenizer=tokenizer,
-            batch_size=self.cfg.model.data_module.batch_size,
-            document_max_token_length=self.cfg.model.data_module.document_max_length,
-            summary_max_token_length=self.cfg.model.data_module.summary_max_length,
+            batch_size=self.cfg.bart_model.data_module.batch_size,
+            document_max_token_length=self.cfg.bart_model.data_module.document_max_length,
+            summary_max_token_length=self.cfg.bart_model.data_module.summary_max_length,
         )
         data_module.setup()
 
@@ -337,7 +337,7 @@ class CustumTrainer:
         
         early_stop_callback = EarlyStopping(
             #辞書のアンパックっていうらしい
-            **self.cfg.model.early_stopping
+            **self.cfg.bart_model.early_stopping
         )
 
         checkpoint_callback = ModelCheckpoint(
@@ -353,7 +353,7 @@ class CustumTrainer:
         
         trainer = pl.Trainer(
             fast_dev_run=False,
-            max_epochs=self.cfg.model.epoch,
+            max_epochs=self.cfg.bart_model.epoch,
             accelerator="auto",
             devices="auto",
             callbacks=[checkpoint_callback, early_stop_callback, progress_bar],
@@ -425,7 +425,7 @@ def main(cfg: DictConfig):
     MODEL_DIR="/content/drive/MyDrive/murata-lab/graduation_research/BART_xsum_practice/models"
     id = input("id (2023XXXX_XXXXXX) : ")
     epoch = input("epoch: ")
-    tokenizer = BartTokenizer.from_pretrained(cfg.model.pretrained_model_name)
+    tokenizer = BartTokenizer.from_pretrained(cfg.bart_model.pretrained_model_name)
     trained_model = CustumBart(
         tokenizer,
         cfg=cfg,
@@ -448,7 +448,7 @@ def main(cfg: DictConfig):
         encoding = tokenizer.encode_plus(
             text,
             add_special_tokens=True,
-            max_length=cfg.model.data_module.document_max_length,
+            max_length=cfg.bart_model.data_module.document_max_length,
             padding="max_length",
             truncation=True,
             return_attention_mask=True,
@@ -457,7 +457,7 @@ def main(cfg: DictConfig):
         generated_ids = trained_model.model.generate(
             input_ids=encoding["input_ids"],
             attention_mask=encoding["attention_mask"],
-            max_length=cfg.model.data_module.summary_max_length,
+            max_length=cfg.bart_model.data_module.summary_max_length,
             num_beams=4,
             repetition_penalty=2.5,
             # length_penalty=1.0,

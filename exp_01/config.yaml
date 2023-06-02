@@ -2,7 +2,7 @@ wandb:
   project: Bart-xsum
   exp_num: 1
   tags: [bart]
-model:
+bart_model:
   pretrained_model_name : 'facebook/bart-base'
   epoch : 2
   seed : 40
