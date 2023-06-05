@@ -287,9 +287,9 @@ class CustumTrainer:
         # データセットのダウンロード（xsum）
         xsum = load_dataset("xsum")
         #とりま千文くらい
-        train_ds = xsum["train"][0:3000]
-        val_ds = xsum["validation"][0:1000]
-        test_ds = xsum["test"][0:500]
+        train_ds = xsum["train"][0:300]
+        val_ds = xsum["validation"][0:100]
+        test_ds = xsum["test"][0:50]
 
         # DataFrame変換、よくわからん意味あるのかな？多分やんなくてもいい（Datasetクラスの記述変更は必要になる）
         train_df = pd.DataFrame(train_ds)
@@ -382,17 +382,15 @@ def main(cfg: DictConfig):
             name="val/loss",
         ),
         
-        parameters=dict(
-            data_module=dict(
-                    parameters=dict(
-                        batch_size=dict(
-                            values=[1, 2, 3, 4,5],
-                        ),
-                        document_max_length=1024,  # データセットの入力テキストは21~25字
-                        summary_max_length=400,
-                    ),
+        optimizer=dict(
+            parameters=dict(
+                name=dict(
+                    values=["AdamW", "RAdam"],
+                ),
+                lr=dict(
+                    values=[1e-5, 5e-5, 9e-5, 1e-6],
+                ),
             ),
-            
         ),
     )
     #Execute
