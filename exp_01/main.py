@@ -3,7 +3,7 @@ import datetime
 import random
 import time
 import os
-
+import omegaconf
 # dataset
 from datasets import load_dataset
 # transformers
@@ -413,9 +413,7 @@ def main(config: DictConfig):
     )
     #Execute
     if DO_SWEEP:
-        print(type(config))
-        print(config)
-        print(sweep_config)
+        sweep_config = omegaconf.OmegaConf.to_container(sweep_config, resolve=True)
         sweep_id = wandb.sweep(sweep=sweep_config, project=config.wandb.project)
         trainer = CustumTrainer(config)
         wandb.agent(sweep_id, trainer.execute, count=5)
