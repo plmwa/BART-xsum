@@ -387,35 +387,35 @@ def main(cfg: DictConfig):
         
         parameters=dict(
             model=dict(
-                data_module=dict(
-                    parameters=dict(
-                        batch_size=dict(
-                            values=[1, 2, 3, 4,5],
+                parameters = dict(
+                    data_module=dict(
+                        parameters=dict(
+                            batch_size=dict(
+                                values=[1, 2, 3, 4,5],
+                            ),
+                            document_max_length=1024,  # データセットの入力テキストは21~25字
+                            summary_max_length=400,
                         ),
-                        document_max_length=1024,  # データセットの入力テキストは21~25字
-                        summary_max_length=400,
                     ),
-                ),
-            optimizer=dict(
-                parameters=dict(
-                    name=dict(
-                        values=["AdamW", "RAdam"],
-                    ),
-                    lr=dict(
-                        values=[1e-5, 5e-5, 9e-5, 1e-6,5e-10],
+                    optimizer=dict(
+                        parameters=dict(
+                            name=dict(
+                                values=["AdamW", "RAdam"],
+                            ),
+                            lr=dict(
+                                values=[1e-5, 5e-5, 9e-5, 1e-6,5e-10],
+                            ),
+                        ),
                     ),
                 ),
             ),
         ),
-        ),
     )
     #Execute
     if DO_SWEEP:
-        print(cfg.wandb.project)
-        print(sweep_config)
         sweep_id = wandb.sweep(sweep=sweep_config, project=cfg.wandb.project)
         trainer = CustumTrainer(cfg)
-        wandb.agent(sweep_id, trainer.execute, count=5)
+        wandb.agent(sweep_id, trainer.execute(), count=5)
     else:
         trainer = CustumTrainer(cfg)
         trainer.execute()
