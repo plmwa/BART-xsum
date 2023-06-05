@@ -161,12 +161,12 @@ class CustumBart(pl.LightningModule):
     def __init__(
         self,
         tokenizer,
-        cfg,
+        config,
         pretrained_model="facebook/bart-base",
     ):
         super().__init__()
         self.tokenizer = tokenizer
-        self.cfg = cfg
+        self.config = config
         self.model=BartForConditionalGeneration.from_pretrained(pretrained_model)
         #https://github.com/Lightning-AI/lightning/pull/16520 より移行
         self.validation_step_outputs = []
@@ -277,8 +277,8 @@ class CustumBart(pl.LightningModule):
         return [optimizer]
 
 class CustumTrainer:
-    def __init__(self,cfg):
-        self.cfg = cfg
+    def __init__(self,config):
+        self.config = config
     
     def execute(self):
         current = (datetime.datetime.now() + datetime.timedelta(hours=9)).strftime(
@@ -287,9 +287,9 @@ class CustumTrainer:
         MODEL_OUTPUT_DIR = "/content/drive/MyDrive/murata-lab/graduation_research/BART_xsum_practice/models/" + current
         os.makedirs(MODEL_OUTPUT_DIR, exist_ok=True)
         wandb.init(
-            project=self.cfg.wandb.project,
+            project=self.config.wandb.project,
             name=current,
-            config=self.cfg,
+            config=self.config,
             id=current,
             save_code=True,
         )
@@ -308,10 +308,10 @@ class CustumTrainer:
 
         print(train_df)
         # トークナイザーモデルの読み込み
-        tokenizer = BartTokenizer.from_pretrained(self.cfg.pretrained_model_name)
+        tokenizer = BartTokenizer.from_pretrained(self.config.pretrained_model_name)
         # Datasetのdocumentは2000くらい長さあるけど、今回使うBartの入力がmax1024だから1024以降の文は切り捨てる
         train_dataset = XsumDataset(
-            train_df, tokenizer, document_max_length=self.cfg.data_module.document_max_length, summary_max_length=self.cfg.data_module.summary_max_length
+            train_df, tokenizer, document_max_length=self.config.data_module.document_max_length, summary_max_length=self.config.data_module.summary_max_length
         )
         # トークナイズ結果確認
         for data in train_dataset:
@@ -331,14 +331,14 @@ class CustumTrainer:
             valid_df=val_df,
             test_df=test_df,
             tokenizer=tokenizer,
-            batch_size=self.cfg.data_module.batch_size,
-            document_max_token_length=self.cfg.data_module.document_max_length,
-            summary_max_token_length=self.cfg.data_module.summary_max_length,
+            batch_size=self.config.data_module.batch_size,
+            document_max_token_length=self.config.data_module.document_max_length,
+            summary_max_token_length=self.config.data_module.summary_max_length,
         )
         data_module.setup()
 
         #CustumBartには学習のステップとか関数とかいろいろ自分で設定してる
-        model = CustumBart(tokenizer, self.cfg)
+        model = CustumBart(tokenizer, self.config)
 
         wandb_logger = WandbLogger(
             log_model=False,
@@ -347,7 +347,7 @@ class CustumTrainer:
         
         early_stop_callback = EarlyStopping(
             #辞書のアンパックっていうらしい
-            **self.cfg.early_stopping
+            **self.config.early_stopping
         )
 
         checkpoint_callback = ModelCheckpoint(
@@ -363,7 +363,7 @@ class CustumTrainer:
         
         trainer = pl.Trainer(
             fast_dev_run=False,
-            max_epochs=self.cfg.epoch,
+            max_epochs=self.config.epoch,
             accelerator="auto",
             devices="auto",
             callbacks=[checkpoint_callback, early_stop_callback, progress_bar],
@@ -379,7 +379,7 @@ class CustumTrainer:
 
 
 @hydra.main(config_path=".", config_name="config")
-def main(cfg: DictConfig):
+def main(config: DictConfig):
     #wandbセットアップ
     wandb.login()
     #sweepか普通に実行かどちらかをこのboolで選ぶ
@@ -406,24 +406,24 @@ def main(cfg: DictConfig):
     )
     #Execute
     if DO_SWEEP:
-        print(type(cfg))
-        print(cfg)
+        print(type(config))
+        print(config)
         print(sweep_config)
-        sweep_id = wandb.sweep(sweep=sweep_config, project=cfg.wandb.project)
-        trainer = CustumTrainer(cfg)
+        sweep_id = wandb.sweep(sweep=sweep_config, project=config.wandb.project)
+        trainer = CustumTrainer(config)
         wandb.agent(sweep_id, trainer.execute, count=5)
     else:
-        trainer = CustumTrainer(cfg)
+        trainer = CustumTrainer(config)
         trainer.execute()
     
     #predict
     MODEL_DIR="/content/drive/MyDrive/murata-lab/graduation_research/BART_xsum_practice/models"
     id = input("id (2023XXXX_XXXXXX) : ")
     epoch = input("epoch: ")
-    tokenizer = BartTokenizer.from_pretrained(cfg.pretrained_model_name)
+    tokenizer = BartTokenizer.from_pretrained(config.pretrained_model_name)
     trained_model = CustumBart(
         tokenizer,
-        cfg=cfg,
+        config=config,
     )
     trained_model.load_state_dict(
         torch.load(
@@ -443,7 +443,7 @@ def main(cfg: DictConfig):
         encoding = tokenizer.encode_plus(
             text,
             add_special_tokens=True,
-            max_length=cfg.data_module.document_max_length,
+            max_length=config.data_module.document_max_length,
             padding="max_length",
             truncation=True,
             return_attention_mask=True,
@@ -452,7 +452,7 @@ def main(cfg: DictConfig):
         generated_ids = trained_model.model.generate(
             input_ids=encoding["input_ids"],
             attention_mask=encoding["attention_mask"],
-            max_length=cfg.data_module.summary_max_length,
+            max_length=config.data_module.summary_max_length,
             num_beams=4,
             repetition_penalty=2.5,
             # length_penalty=1.0,
