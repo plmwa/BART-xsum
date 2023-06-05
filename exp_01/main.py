@@ -412,7 +412,7 @@ def main(cfg: DictConfig):
         print(sweep_config)
         sweep_id = wandb.sweep(sweep=sweep_config, project=cfg.wandb.project)
         trainer = CustumTrainer(cfg)
-        wandb.agent(sweep_id, trainer.execute, count=5)
+        wandb.agent(sweep_id, trainer.execute(), count=5)
     else:
         trainer = CustumTrainer(cfg)
         trainer.execute()
