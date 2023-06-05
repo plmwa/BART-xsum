@@ -263,8 +263,18 @@ class CustumBart(pl.LightningModule):
 
     #最適化関数
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=5e-10)
-        return optimizer
+        assert self.config.optimizer.name in ["AdamW", "RAdam"]
+        if self.config.optimizer.name == "AdamW":
+            optimizer = torch.optim.AdamW(
+                self.parameters(),
+                lr=self.config.optimizer.lr,
+            )
+        elif self.config.optimizer.name == "RAdam":
+            optimizer = torch.optim.RAdam(
+                self.parameters(),
+                lr=self.config.optimizer.lr,
+            )
+        return [optimizer]
 
 class CustumTrainer:
     def __init__(self,cfg):
@@ -388,7 +398,7 @@ def main(cfg: DictConfig):
                         values=["AdamW", "RAdam"],
                     ),
                     lr=dict(
-                        values=[1e-5, 5e-5, 9e-5, 1e-6],
+                        values=[1e-5, 5e-5, 9e-5, 1e-6,5e-10],
                     ),
                 ),
             ),
