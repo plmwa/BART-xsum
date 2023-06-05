@@ -372,40 +372,6 @@ class CustumTrainer:
 def main(cfg: DictConfig):
     #wandbセットアップ
     wandb.login()
-
-    cfg = {
-    "wandb": {
-        "project": "Bart-xsum",
-        "exp_num": 1,
-        "tags": ["bart"]
-    },
-    "pretrained_model_name": "facebook/bart-base",
-    "epoch": 2,
-    "seed": 40,
-    "accumulate_grad_batches": 1,
-    "data_module": {
-        "batch_size": 2,
-        "document_max_length": 1024,
-        "summary_max_length": 400
-    },
-    "optimizer": {
-        "name": "RAdam",
-        "lr": 1e-5
-    },
-    "early_stopping": {
-        "monitor": "val/loss",
-        "patience": 3,
-        "mode": "min",
-        "min_delta": 0.02
-    },
-    "checkpoint": {
-        "monitor": "val/loss",
-        "mode": "min",
-        "filename": "2",
-        "verbose": True
-    }
-}
-
     #sweepか普通に実行かどちらかをこのboolで選ぶ
     #sweepのコードうごかん
     DO_SWEEP = True
@@ -426,21 +392,13 @@ def main(cfg: DictConfig):
                         summary_max_length=400,
                     ),
             ),
-            optimizer=dict(
-                parameters=dict(
-                    name=dict(
-                        values=["AdamW", "RAdam"],
-                    ),
-                    lr=dict(
-                        values=[1e-5, 5e-5, 9e-5, 1e-6,5e-10],
-                    ),
-                ),
-            ),
+            
         ),
     )
     #Execute
     if DO_SWEEP:
-        print(cfg.wandb.project)
+        print(type(cfg))
+        print(cfg)
         print(sweep_config)
         sweep_id = wandb.sweep(sweep=sweep_config, project=cfg.wandb.project)
         trainer = CustumTrainer(cfg)
