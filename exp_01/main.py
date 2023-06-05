@@ -392,6 +392,13 @@ def main(config: DictConfig):
             name="val/loss",
         ),
         parameters=dict(
+            data_module=dict(
+                parameters=dict(
+                    batch_size=[1,2,3,4],
+                    document_max_length=1024,  
+                    summary_max_length=400,
+                ),
+            ),
             optimizer=dict(
                 parameters=dict(
                     name=dict(
