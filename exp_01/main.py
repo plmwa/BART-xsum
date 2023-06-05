@@ -381,17 +381,18 @@ def main(cfg: DictConfig):
             goal="minimize",
             name="val/loss",
         ),
-        
-        optimizer=dict(
-            parameters=dict(
-                name=dict(
-                    values=["AdamW", "RAdam"],
-                ),
-                lr=dict(
-                    values=[1e-5, 5e-5, 9e-5, 1e-6],
+        parameters=dict(
+            optimizer=dict(
+                parameters=dict(
+                    name=dict(
+                        values=["AdamW", "RAdam"],
+                    ),
+                    lr=dict(
+                        values=[1e-5, 5e-5, 9e-5, 1e-6],
+                    ),
                 ),
             ),
-        ),
+        )
     )
     #Execute
     if DO_SWEEP:
