@@ -397,9 +397,13 @@ def main(config: DictConfig):
                     batch_size=dict(
                         values=[1 ,2 ,3 ,4]
                     ),
-                    document_max_length=1024,  
-                    summary_max_length=400,
-                ),
+                    document_max_length=dict(
+                        1024,
+                    ),  
+                    summary_max_length=dict(
+                        400,
+                    ),
+                )
             ),
             optimizer=dict(
                 parameters=dict(
@@ -409,7 +413,7 @@ def main(config: DictConfig):
                     lr=dict(
                         values=[1e-5, 5e-5, 9e-5, 1e-6,5e-10],
                     ),
-                ),
+                )
             ),
         )
     )
