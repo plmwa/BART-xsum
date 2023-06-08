@@ -398,10 +398,10 @@ def main(config: DictConfig):
                         values=[1 ,2 ,3 ,4]
                     ),
                     document_max_length=dict(
-                        values=1024,
+                        value=1024,
                     ),  
                     summary_max_length=dict(
-                        values=400,
+                        value=400,
                     ),
                 )
             ),

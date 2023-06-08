@@ -1,7 +1,6 @@
 transformers
 torch
 pytorch-lightning
-hydra-core==1.0.4
 wandb
 torchmetrics
 datasets
