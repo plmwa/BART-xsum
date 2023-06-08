@@ -394,7 +394,9 @@ def main(config: DictConfig):
         parameters=dict(
             data_module=dict(
                 parameters=dict(
-                    batch_size=[1,2,3,4],
+                    batch_size=dict(
+                        values=[1 ,2 ,3 ,4]
+                    ),
                     document_max_length=1024,  
                     summary_max_length=400,
                 ),
@@ -414,6 +416,7 @@ def main(config: DictConfig):
     #Execute
     if DO_SWEEP:
         print(type(config))
+        print(type(sweep_config))
         print(config)
         print(sweep_config)
         sweep_id = wandb.sweep(sweep=sweep_config, project=config.wandb.project)
